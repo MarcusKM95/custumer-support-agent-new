@@ -1,0 +1,25 @@
+services:
+  qdrant:
+    image: qdrant/qdrant
+    container_name: customer-support-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  postgres:
+    image: postgres:16
+    container_name: customer-support-postgres
+    environment:
+      POSTGRES_DB: customer_support_agents
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  qdrant_data:
+  postgres_data:
