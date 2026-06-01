@@ -30,6 +30,8 @@ export EMBEDDING_MODEL="text-embedding-3-small"
 export EMBEDDING_DIMENSIONS="384"
 export EMBEDDING_BATCH_SIZE="16"
 export EMBEDDING_RETRY_SECONDS="8"
+export CHAT_MODEL="gpt-4.1-mini"
+export CHAT_RETRY_SECONDS="8"
 ```
 
 Ingest the Danske Spil rules into Qdrant:
