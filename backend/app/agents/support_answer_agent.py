@@ -31,7 +31,11 @@ vejledning ud fra reglerne og anbefale menneskelig hjælp.
 """.strip()
 
 
-def generate_support_answer(user_message: str, retrieved_guidelines: list[dict]) -> dict:
+def generate_support_answer(
+    user_message: str,
+    retrieved_guidelines: list[dict],
+    conversation_history: str | None = None,
+) -> dict:
     if not retrieved_guidelines:
         return {
             "answer": (
@@ -40,6 +44,7 @@ def generate_support_answer(user_message: str, retrieved_guidelines: list[dict])
             ),
             "model": None,
             "agent": "support_answer_agent",
+            "retrieved_guidelines": [],
         }
 
     context = format_retrieved_context(retrieved_guidelines)
@@ -49,6 +54,7 @@ def generate_support_answer(user_message: str, retrieved_guidelines: list[dict])
             {
                 "role": "user",
                 "content": (
+                    f"Tidligere samtale:\n{conversation_history or 'Ingen tidligere beskeder.'}\n\n"
                     f"Kundens spørgsmål:\n{user_message}\n\n"
                     f"Relevante regler:\n{context}\n\n"
                     "Skriv et kundesupport-svar baseret på reglerne."
@@ -58,10 +64,27 @@ def generate_support_answer(user_message: str, retrieved_guidelines: list[dict])
     )
 
     return {
-        "answer": response["choices"][0]["message"]["content"].strip(),
+        "answer": add_source_citation(
+            response["choices"][0]["message"]["content"].strip(),
+            retrieved_guidelines,
+        ),
         "model": response.get("model"),
         "agent": "support_answer_agent",
+        "retrieved_guidelines": retrieved_guidelines,
     }
+
+
+def add_source_citation(answer: str, retrieved_guidelines: list[dict]) -> str:
+    if not retrieved_guidelines:
+        return answer
+
+    first_source = retrieved_guidelines[0]
+    source_url = first_source.get("source_url")
+    if not source_url or source_url in answer:
+        return answer
+
+    section = first_source.get("section") or "Kilde"
+    return f"{answer.rstrip()}\n\nKilde: {section} - {source_url}"
 
 
 def format_retrieved_context(retrieved_guidelines: list[dict]) -> str:
@@ -70,6 +93,8 @@ def format_retrieved_context(retrieved_guidelines: list[dict]) -> str:
     for index, guideline in enumerate(retrieved_guidelines, start=1):
         section = guideline.get("section") or "Ukendt sektion"
         chunk_index = guideline.get("chunk_index")
+        rule_number = guideline.get("rule_number")
+        keywords = guideline.get("keywords") or []
         source_url = guideline.get("source_url") or "Ukendt kilde"
         text = guideline.get("text") or ""
 
@@ -77,6 +102,8 @@ def format_retrieved_context(retrieved_guidelines: list[dict]) -> str:
             "\n".join(
                 [
                     f"[{index}] Section: {section}",
+                    f"Rule number: {rule_number}",
+                    f"Keywords: {', '.join(keywords)}",
                     f"Internal chunk: {chunk_index}",
                     f"Source URL: {source_url}",
                     f"Text: {text}",

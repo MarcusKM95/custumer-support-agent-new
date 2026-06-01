@@ -4,7 +4,7 @@ from uuid import uuid4
 from qdrant_client.models import Distance, PointStruct, VectorParams
 
 from app.db.qdrant_client import get_qdrant_client
-from app.rag.chunker import chunk_text
+from app.rag.chunker import chunk_rules
 from app.rag.embedder import embed_texts, get_embedding_size
 from app.rag.html_text import fetch_html_text
 from app.rag.sources import COLLECTION_NAME, DANSKE_SPIL_RULES_URL
@@ -83,8 +83,8 @@ def ingest_danske_spil_rules(recreate: bool = True) -> int:
 
     for section_name, rules_text in sections:
         source_url = f"{DANSKE_SPIL_RULES_URL}#{section_name.lower()}"
-        chunks = chunk_text(rules_text)
-        embeddings = embed_texts(chunks)
+        chunks = chunk_rules(rules_text)
+        embeddings = embed_texts([chunk["text"] for chunk in chunks])
 
         for chunk_index, (chunk, embedding) in enumerate(zip(chunks, embeddings, strict=True)):
             points.append(
@@ -92,10 +92,12 @@ def ingest_danske_spil_rules(recreate: bool = True) -> int:
                     id=str(uuid4()),
                     vector=embedding,
                     payload={
-                        "text": chunk,
+                        "text": chunk["text"],
                         "source": "Danske Spil DLI spilleregler",
                         "source_url": source_url,
                         "section": section_name,
+                        "rule_number": chunk["rule_number"],
+                        "keywords": chunk["keywords"],
                         "chunk_index": chunk_index,
                     },
                 )
