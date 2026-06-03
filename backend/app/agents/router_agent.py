@@ -16,6 +16,8 @@ MAX_ROUTER_RETRIES = 4
 
 SUPPORTED_INTENTS = {
     "rules_question",
+    "greeting",
+    "needs_clarification",
     "account_issue",
     "payment_issue",
     "complaint",
@@ -29,11 +31,13 @@ Du er routing-agent for en dansk kundesupport-chatbot.
 
 Klassificer kundens besked i præcis én intent:
 - rules_question: spørgsmål om spilleregler, produkter, vinderregler, odds, bingo, casino, poker, tips, måljagt, dantoto eller livecasino.
+- greeting: simple hilsner som "hej", "godmorgen", "halløjsa" uden konkret problem.
+- needs_clarification: beskeden er for vag til at afgøre, hvad kunden har brug for, fx "det virker ikke", "hjælp", "jeg har et problem".
 - account_issue: login, konto, verificering, personlige oplysninger, spilgrænser eller kundens konkrete konto.
 - payment_issue: indbetaling, udbetaling, manglende penge, refundering eller transaktioner.
 - complaint: utilfredshed, klage, vred kunde, anklager om fejl/snyd eller ønske om at klage.
 - responsible_gambling: ludomani, spilleproblemer, ROFUS, selvudelukkelse, stop med at spille eller bekymring om spiladfærd.
-- technical_issue: app, hjemmeside, fejlmeddelelse, nedbrud, browser eller teknisk adgang.
+- technical_issue: konkret teknisk problem med app, hjemmeside, fejlmeddelelse, nedbrud, browser eller teknisk adgang.
 - unknown: beskeden er uklar eller passer ikke på ovenstående.
 
 Hvis beskeden både indeholder utilfredshed/ord som "snyd" og et konkret
@@ -42,6 +46,9 @@ klassificeres som rules_question. Det samme gælder spørgsmål om chatregler,
 karantæne, ban eller udelukkelse i et konkret spil, når årsagen kan forklares
 med generelle regler. Brug kun complaint eller account_issue, når beskeden
 primært handler om en kontoændring uden et generelt regelspørgsmål.
+
+Simple hilsner må aldrig klassificeres som account_issue, complaint eller
+unknown. Vage beskeder må ikke eskaleres direkte; brug needs_clarification.
 
 Returner kun valid JSON med nøglerne:
 {

@@ -53,3 +53,11 @@ Run the backend:
 ```bash
 uvicorn app.main:app --reload
 ```
+
+Open the frontend:
+
+```bash
+open frontend/index.html
+```
+
+The frontend calls the backend at `http://localhost:8000`.

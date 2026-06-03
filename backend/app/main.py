@@ -1,6 +1,8 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
+from app.agents.clarification_agent import build_clarification_response
 from app.agents.escalation_agent import build_escalation_response
 from app.agents.reranker_agent import rerank_guidelines
 from app.agents.router_agent import route_message
@@ -17,6 +19,20 @@ from app.memory.conversation_memory import (
 from app.rag.retriever import search_guidelines
 
 app = FastAPI(title="Customer Support Agents")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173",
+        "null",
+    ],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class ChatRequest(BaseModel):
@@ -75,6 +91,8 @@ def chat(request: ChatRequest):
             )
             agent_response["reranker"] = reranked["reranker"]
             agent_response["verification"] = verification
+        elif route["intent"] in {"greeting", "needs_clarification", "technical_issue"}:
+            agent_response = build_clarification_response(route)
         else:
             agent_response = build_escalation_response(user_message, route)
 
@@ -111,6 +129,7 @@ def chat(request: ChatRequest):
         "retrieved_guidelines": agent_response.get("retrieved_guidelines", []),
         "reranker": agent_response.get("reranker"),
         "verification": agent_response.get("verification"),
+        "clarification": agent_response.get("clarification", {"required": False}),
         "escalation": agent_response.get("escalation", {"required": False}),
     }
 

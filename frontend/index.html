@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Customer Support Agents</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f5f7fb;
+        --panel: #ffffff;
+        --border: #d8dee9;
+        --text: #17202e;
+        --muted: #657286;
+        --accent: #1167b1;
+        --accent-dark: #0c4f8c;
+        --user: #e5f0ff;
+        --assistant: #ffffff;
+        --warning: #fff4d6;
+        --warning-border: #e5b548;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+      }
+
+      .app {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 340px;
+        gap: 1px;
+        min-height: 100vh;
+        background: var(--border);
+      }
+
+      main,
+      aside {
+        background: var(--panel);
+      }
+
+      main {
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        min-width: 0;
+      }
+
+      header {
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 20px;
+        line-height: 1.2;
+        font-weight: 700;
+      }
+
+      .subtitle {
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .messages {
+        overflow-y: auto;
+        padding: 24px;
+      }
+
+      .message {
+        max-width: 780px;
+        margin: 0 0 16px;
+        padding: 14px 16px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        white-space: pre-wrap;
+        line-height: 1.45;
+      }
+
+      .message.user {
+        margin-left: auto;
+        background: var(--user);
+      }
+
+      .message.assistant {
+        background: var(--assistant);
+      }
+
+      .message.error {
+        background: #ffe9e9;
+        border-color: #e89a9a;
+      }
+
+      .composer {
+        padding: 16px 24px 24px;
+        border-top: 1px solid var(--border);
+        background: #fbfcff;
+      }
+
+      .input-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: end;
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 76px;
+        max-height: 180px;
+        resize: vertical;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px;
+        font: inherit;
+        line-height: 1.4;
+      }
+
+      button {
+        border: 0;
+        border-radius: 8px;
+        background: var(--accent);
+        color: white;
+        cursor: pointer;
+        font: inherit;
+        font-weight: 650;
+        padding: 12px 16px;
+      }
+
+      button:hover {
+        background: var(--accent-dark);
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+      }
+
+      .quick-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .quick-actions button,
+      .secondary {
+        background: #edf2f7;
+        color: var(--text);
+        border: 1px solid var(--border);
+        padding: 8px 10px;
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .quick-actions button:hover,
+      .secondary:hover {
+        background: #e1e8f0;
+      }
+
+      aside {
+        padding: 20px;
+        overflow-y: auto;
+      }
+
+      .panel {
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 18px;
+        margin-bottom: 18px;
+      }
+
+      .panel:last-child {
+        border-bottom: 0;
+      }
+
+      .panel h2 {
+        margin: 0 0 10px;
+        font-size: 14px;
+        text-transform: uppercase;
+        color: var(--muted);
+        letter-spacing: 0;
+      }
+
+      .meta-row {
+        display: grid;
+        grid-template-columns: 104px minmax(0, 1fr);
+        gap: 8px;
+        font-size: 14px;
+        margin: 8px 0;
+      }
+
+      .label {
+        color: var(--muted);
+      }
+
+      .value {
+        overflow-wrap: anywhere;
+      }
+
+      .source {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px;
+        margin-top: 8px;
+        font-size: 13px;
+      }
+
+      .source a {
+        color: var(--accent);
+        overflow-wrap: anywhere;
+      }
+
+      .escalation {
+        background: var(--warning);
+        border-color: var(--warning-border);
+      }
+
+      .status {
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 13px;
+        min-height: 18px;
+      }
+
+      @media (max-width: 900px) {
+        .app {
+          grid-template-columns: 1fr;
+        }
+
+        aside {
+          border-top: 1px solid var(--border);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <main>
+        <header>
+          <h1>Customer Support Agents</h1>
+          <div class="subtitle">RAG-backed multi-agent support chat</div>
+        </header>
+
+        <section class="messages" id="messages"></section>
+
+        <form class="composer" id="chat-form">
+          <div class="input-row">
+            <textarea
+              id="message-input"
+              placeholder="Skriv et kundespørgsmål..."
+              autocomplete="off"
+            ></textarea>
+            <button id="send-button" type="submit">Send</button>
+          </div>
+          <div class="quick-actions">
+            <button type="button" data-prompt="Hvor tidligt kan jeg købe spilleplader til Bingo?">
+              Bingo
+            </button>
+            <button
+              type="button"
+              data-prompt="Jeg sad og spillede blackjack og skrev i chatten at jeg ville købe noget hash. Det blev jeg banned for?? Kan I ikke ophæve den karantæne!?"
+            >
+              Chatregel
+            </button>
+            <button
+              type="button"
+              data-prompt="Jeg spillede på at Delaney fra FCK skulle score 3 mål i kampen, da han havde scoret to mål i kampen blev han skiftet ud!! Jeg tabte derfor mit odds, det er fandme snyd!!!"
+            >
+              Oddset
+            </button>
+            <button type="button" data-prompt="Hvorfor mangler min udbetaling?">
+              Eskalering
+            </button>
+            <button type="button" class="secondary" id="new-conversation">
+              Ny samtale
+            </button>
+          </div>
+          <div class="status" id="status"></div>
+        </form>
+      </main>
+
+      <aside>
+        <section class="panel">
+          <h2>Session</h2>
+          <div class="meta-row">
+            <div class="label">API</div>
+            <div class="value" id="api-url">http://localhost:8000</div>
+          </div>
+          <div class="meta-row">
+            <div class="label">Samtale</div>
+            <div class="value" id="conversation-id">Ikke startet</div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h2>Router</h2>
+          <div id="router-panel">Ingen besked endnu.</div>
+        </section>
+
+        <section class="panel">
+          <h2>Eskalering</h2>
+          <div id="escalation-panel">Ingen eskalering.</div>
+        </section>
+
+        <section class="panel">
+          <h2>Afklaring</h2>
+          <div id="clarification-panel">Ingen afklaring.</div>
+        </section>
+
+        <section class="panel">
+          <h2>Kilder</h2>
+          <div id="sources-panel">Ingen kilder endnu.</div>
+        </section>
+
+        <section class="panel">
+          <h2>Verifikation</h2>
+          <div id="verification-panel">Ingen verifikation endnu.</div>
+        </section>
+      </aside>
+    </div>
+
+    <script>
+      const API_BASE_URL = "http://localhost:8000";
+      const messagesEl = document.getElementById("messages");
+      const formEl = document.getElementById("chat-form");
+      const inputEl = document.getElementById("message-input");
+      const sendButtonEl = document.getElementById("send-button");
+      const statusEl = document.getElementById("status");
+      const conversationIdEl = document.getElementById("conversation-id");
+      const routerPanelEl = document.getElementById("router-panel");
+      const escalationPanelEl = document.getElementById("escalation-panel");
+      const clarificationPanelEl = document.getElementById("clarification-panel");
+      const sourcesPanelEl = document.getElementById("sources-panel");
+      const verificationPanelEl = document.getElementById("verification-panel");
+      const newConversationEl = document.getElementById("new-conversation");
+
+      let conversationId = localStorage.getItem("conversation_id") || null;
+      if (conversationId) {
+        conversationIdEl.textContent = conversationId;
+      }
+
+      formEl.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const message = inputEl.value.trim();
+        if (!message) return;
+
+        addMessage("user", message);
+        inputEl.value = "";
+        await sendMessage(message);
+      });
+
+      document.querySelectorAll("[data-prompt]").forEach((button) => {
+        button.addEventListener("click", () => {
+          inputEl.value = button.dataset.prompt;
+          inputEl.focus();
+        });
+      });
+
+      newConversationEl.addEventListener("click", () => {
+        conversationId = null;
+        localStorage.removeItem("conversation_id");
+        conversationIdEl.textContent = "Ikke startet";
+        messagesEl.innerHTML = "";
+        routerPanelEl.textContent = "Ingen besked endnu.";
+        escalationPanelEl.textContent = "Ingen eskalering.";
+        clarificationPanelEl.textContent = "Ingen afklaring.";
+        sourcesPanelEl.textContent = "Ingen kilder endnu.";
+        verificationPanelEl.textContent = "Ingen verifikation endnu.";
+        statusEl.textContent = "Ny samtale klar.";
+      });
+
+      async function sendMessage(message) {
+        setLoading(true);
+        statusEl.textContent = "Sender til agentnetværk...";
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/chat`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              message,
+              conversation_id: conversationId,
+            }),
+          });
+
+          const data = await response.json();
+          if (!response.ok || data.error) {
+            throw new Error(data.error || `HTTP ${response.status}`);
+          }
+
+          conversationId = data.conversation_id;
+          localStorage.setItem("conversation_id", conversationId);
+          conversationIdEl.textContent = conversationId;
+
+          addMessage("assistant", data.answer || "Intet svar modtaget.");
+          renderMetadata(data);
+          statusEl.textContent = "Klar.";
+        } catch (error) {
+          addMessage("error", error.message);
+          statusEl.textContent = "Fejl. Tjek at backend kører på localhost:8000.";
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      function addMessage(role, text) {
+        const messageEl = document.createElement("div");
+        messageEl.className = `message ${role}`;
+        messageEl.textContent = text;
+        messagesEl.appendChild(messageEl);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+
+      function renderMetadata(data) {
+        routerPanelEl.innerHTML = "";
+        routerPanelEl.appendChild(renderRows({
+          Intent: data.router?.intent,
+          Confidence: data.router?.confidence,
+          Reason: data.router?.reason,
+          Agent: data.agent,
+          Model: data.model,
+        }));
+
+        escalationPanelEl.innerHTML = "";
+        const escalation = data.escalation || { required: false };
+        const escalationBox = document.createElement("div");
+        escalationBox.className = escalation.required ? "source escalation" : "";
+        escalationBox.appendChild(renderRows({
+          Required: escalation.required,
+          Queue: escalation.queue,
+          Priority: escalation.priority,
+          Reason: escalation.reason,
+        }));
+        escalationPanelEl.appendChild(escalationBox);
+
+        clarificationPanelEl.innerHTML = "";
+        const clarification = data.clarification || { required: false };
+        clarificationPanelEl.appendChild(renderRows({
+          Required: clarification.required,
+          Intent: clarification.intent,
+          Reason: clarification.reason,
+          Confidence: clarification.router_confidence,
+        }));
+
+        sourcesPanelEl.innerHTML = "";
+        const sources = data.sources || [];
+        if (!sources.length) {
+          sourcesPanelEl.textContent = "Ingen kilder.";
+        } else {
+          sources.forEach((source) => {
+            const sourceEl = document.createElement("div");
+            sourceEl.className = "source";
+            sourceEl.appendChild(renderRows({
+              Section: source.section,
+              Rule: source.rule_number,
+              Score: source.score,
+            }));
+            if (source.source_url) {
+              const link = document.createElement("a");
+              link.href = source.source_url;
+              link.target = "_blank";
+              link.rel = "noreferrer";
+              link.textContent = source.source_url;
+              sourceEl.appendChild(link);
+            }
+            sourcesPanelEl.appendChild(sourceEl);
+          });
+        }
+
+        verificationPanelEl.innerHTML = "";
+        verificationPanelEl.appendChild(renderRows({
+          Supported: data.verification?.supported,
+          Confidence: data.verification?.confidence,
+          Reason: data.verification?.reason,
+        }));
+      }
+
+      function renderRows(rows) {
+        const fragment = document.createDocumentFragment();
+        Object.entries(rows).forEach(([label, value]) => {
+          if (value === undefined || value === null || value === "") return;
+          const row = document.createElement("div");
+          row.className = "meta-row";
+          const labelEl = document.createElement("div");
+          labelEl.className = "label";
+          labelEl.textContent = label;
+          const valueEl = document.createElement("div");
+          valueEl.className = "value";
+          valueEl.textContent = String(value);
+          row.append(labelEl, valueEl);
+          fragment.appendChild(row);
+        });
+        return fragment;
+      }
+
+      function setLoading(isLoading) {
+        sendButtonEl.disabled = isLoading;
+        inputEl.disabled = isLoading;
+      }
+    </script>
+  </body>
+</html>
