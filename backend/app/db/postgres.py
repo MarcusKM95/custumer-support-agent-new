@@ -50,4 +50,27 @@ def initialize_database() -> None:
                 ON messages (conversation_id, created_at)
                 """
             )
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS tickets (
+                    id BIGSERIAL PRIMARY KEY,
+                    conversation_id UUID NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+                    intent TEXT NOT NULL,
+                    queue TEXT NOT NULL,
+                    priority TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'open',
+                    reason TEXT NOT NULL,
+                    customer_message TEXT NOT NULL,
+                    router_confidence DOUBLE PRECISION NOT NULL DEFAULT 0,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+                    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+                )
+                """
+            )
+            cursor.execute(
+                """
+                CREATE INDEX IF NOT EXISTS tickets_queue_status_idx
+                ON tickets (queue, status, created_at)
+                """
+            )
         connection.commit()

@@ -1,3 +1,5 @@
+from time import perf_counter
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -17,6 +19,7 @@ from app.memory.conversation_memory import (
     get_recent_messages,
 )
 from app.rag.retriever import search_guidelines
+from app.tickets.ticket_repository import create_ticket
 
 app = FastAPI(title="Customer Support Agents")
 
@@ -58,31 +61,118 @@ def qdrant_health():
 @app.post("/chat")
 def chat(request: ChatRequest):
     user_message = request.message.strip()
+    trace = []
+    request_started_at = perf_counter()
     try:
+        step_started_at = perf_counter()
         conversation_id = ensure_conversation(request.conversation_id)
         previous_messages = get_recent_messages(conversation_id)
         conversation_history = format_history(previous_messages)
         add_message(conversation_id, "user", user_message)
+        trace.append(
+            build_trace_step(
+                "memory",
+                "Conversation Memory",
+                step_started_at,
+                {
+                    "conversation_id": conversation_id,
+                    "history_messages": len(previous_messages),
+                },
+            )
+        )
 
+        step_started_at = perf_counter()
         route = route_message(user_message, conversation_history)
+        trace.append(
+            build_trace_step(
+                "router",
+                "Router Agent",
+                step_started_at,
+                {
+                    "intent": route["intent"],
+                    "confidence": route["confidence"],
+                    "reason": route["reason"],
+                },
+            )
+        )
+
         if route["intent"] == "rules_question":
+            step_started_at = perf_counter()
             candidate_guidelines = search_guidelines(user_message, limit=12)
+            trace.append(
+                build_trace_step(
+                    "retrieval",
+                    "Qdrant Retrieval",
+                    step_started_at,
+                    {
+                        "candidate_count": len(candidate_guidelines),
+                        "sections": sorted(
+                            {
+                                guideline.get("section")
+                                for guideline in candidate_guidelines
+                                if guideline.get("section")
+                            }
+                        ),
+                    },
+                )
+            )
+
+            step_started_at = perf_counter()
             reranked = rerank_guidelines(
                 user_message,
                 candidate_guidelines,
                 conversation_history=conversation_history,
             )
             retrieved_guidelines = reranked["guidelines"]
+            trace.append(
+                build_trace_step(
+                    "reranker",
+                    "Reranker Agent",
+                    step_started_at,
+                    {
+                        "selected_count": len(retrieved_guidelines),
+                        "confidence": reranked["reranker"]["confidence"],
+                        "reason": reranked["reranker"]["reason"],
+                    },
+                )
+            )
+
+            step_started_at = perf_counter()
             agent_response = generate_support_answer(
                 user_message,
                 retrieved_guidelines,
                 conversation_history=conversation_history,
             )
+            trace.append(
+                build_trace_step(
+                    "answer",
+                    "Support Answer Agent",
+                    step_started_at,
+                    {
+                        "model": agent_response["model"],
+                        "source_count": len(retrieved_guidelines),
+                    },
+                )
+            )
+
+            step_started_at = perf_counter()
             verification = verify_support_answer(
                 user_message,
                 agent_response["answer"],
                 retrieved_guidelines,
                 conversation_history=conversation_history,
+            )
+            trace.append(
+                build_trace_step(
+                    "verification",
+                    "Verification Agent",
+                    step_started_at,
+                    {
+                        "supported": verification["supported"],
+                        "confidence": verification["confidence"],
+                        "reason": verification["reason"],
+                    },
+                )
             )
             agent_response["answer"] = verification["corrected_answer"]
             agent_response["answer"] = add_source_citation(
@@ -92,10 +182,52 @@ def chat(request: ChatRequest):
             agent_response["reranker"] = reranked["reranker"]
             agent_response["verification"] = verification
         elif route["intent"] in {"greeting", "needs_clarification", "technical_issue"}:
+            step_started_at = perf_counter()
             agent_response = build_clarification_response(route)
+            trace.append(
+                build_trace_step(
+                    "clarification",
+                    "Clarification Agent",
+                    step_started_at,
+                    {
+                        "intent": route["intent"],
+                        "reason": agent_response["clarification"]["reason"],
+                    },
+                )
+            )
         else:
+            step_started_at = perf_counter()
             agent_response = build_escalation_response(user_message, route)
+            trace.append(
+                build_trace_step(
+                    "escalation",
+                    "Escalation Agent",
+                    step_started_at,
+                    {
+                        "queue": agent_response["escalation"]["queue"],
+                        "priority": agent_response["escalation"]["priority"],
+                        "reason": agent_response["escalation"]["reason"],
+                    },
+                )
+            )
+            step_started_at = perf_counter()
+            ticket = create_ticket(conversation_id, agent_response["escalation"])
+            agent_response["ticket"] = ticket
+            trace.append(
+                build_trace_step(
+                    "ticket",
+                    "Create Support Ticket",
+                    step_started_at,
+                    {
+                        "ticket_number": ticket["ticket_number"],
+                        "queue": ticket["queue"],
+                        "priority": ticket["priority"],
+                        "status": ticket["status"],
+                    },
+                )
+            )
 
+        step_started_at = perf_counter()
         add_message(
             conversation_id,
             "assistant",
@@ -107,9 +239,19 @@ def chat(request: ChatRequest):
                 "sources": agent_response.get("sources")
                 or build_sources(agent_response.get("retrieved_guidelines", [])),
                 "escalation": agent_response.get("escalation", {"required": False}),
+                "ticket": agent_response.get("ticket"),
                 "reranker": agent_response.get("reranker"),
                 "verification": agent_response.get("verification"),
+                "trace": trace,
             },
+        )
+        trace.append(
+            build_trace_step(
+                "persistence",
+                "Persist Response",
+                step_started_at,
+                {"stored": True},
+            )
         )
     except RuntimeError as e:
         return {
@@ -131,6 +273,9 @@ def chat(request: ChatRequest):
         "verification": agent_response.get("verification"),
         "clarification": agent_response.get("clarification", {"required": False}),
         "escalation": agent_response.get("escalation", {"required": False}),
+        "ticket": agent_response.get("ticket"),
+        "trace": trace,
+        "duration_ms": round((perf_counter() - request_started_at) * 1000, 1),
     }
 
 
@@ -145,3 +290,18 @@ def build_sources(retrieved_guidelines: list[dict]) -> list[dict]:
         }
         for guideline in retrieved_guidelines
     ]
+
+
+def build_trace_step(
+    step_id: str,
+    label: str,
+    started_at: float,
+    details: dict,
+) -> dict:
+    return {
+        "id": step_id,
+        "label": label,
+        "status": "completed",
+        "duration_ms": round((perf_counter() - started_at) * 1000, 1),
+        "details": details,
+    }

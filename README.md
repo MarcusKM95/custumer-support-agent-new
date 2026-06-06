@@ -62,6 +62,13 @@ open frontend/index.html
 
 The frontend calls the backend at `http://localhost:8000`.
 
+The right-hand Agent Trace panel shows the executed backend path, including
+conversation memory, routing, retrieval, reranking, answer generation,
+verification, escalation or clarification, and per-step timing.
+
+Escalated requests create persistent Postgres support tickets with a readable
+ticket number, queue, priority, status, reason, and conversation reference.
+
 ## Evaluation Suite
 
 The evaluation suite contains representative cases for all indexed products,

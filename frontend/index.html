@@ -231,6 +231,69 @@
         min-height: 18px;
       }
 
+      .trace {
+        display: grid;
+        gap: 0;
+      }
+
+      .trace-step {
+        position: relative;
+        padding: 0 0 18px 28px;
+      }
+
+      .trace-step:last-child {
+        padding-bottom: 0;
+      }
+
+      .trace-step::before {
+        content: "";
+        position: absolute;
+        top: 8px;
+        bottom: -8px;
+        left: 7px;
+        width: 1px;
+        background: var(--border);
+      }
+
+      .trace-step:last-child::before {
+        display: none;
+      }
+
+      .trace-dot {
+        position: absolute;
+        top: 4px;
+        left: 2px;
+        width: 11px;
+        height: 11px;
+        border: 2px solid var(--panel);
+        border-radius: 50%;
+        background: #198754;
+        box-shadow: 0 0 0 1px #198754;
+      }
+
+      .trace-title {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .trace-duration {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 500;
+        white-space: nowrap;
+      }
+
+      .trace-details {
+        margin-top: 5px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+      }
+
       @media (max-width: 900px) {
         .app {
           grid-template-columns: 1fr;
@@ -302,6 +365,11 @@
         </section>
 
         <section class="panel">
+          <h2>Agent Trace</h2>
+          <div id="trace-panel">Ingen kørsel endnu.</div>
+        </section>
+
+        <section class="panel">
           <h2>Router</h2>
           <div id="router-panel">Ingen besked endnu.</div>
         </section>
@@ -309,6 +377,11 @@
         <section class="panel">
           <h2>Eskalering</h2>
           <div id="escalation-panel">Ingen eskalering.</div>
+        </section>
+
+        <section class="panel">
+          <h2>Support Ticket</h2>
+          <div id="ticket-panel">Intet ticket oprettet.</div>
         </section>
 
         <section class="panel">
@@ -336,8 +409,10 @@
       const sendButtonEl = document.getElementById("send-button");
       const statusEl = document.getElementById("status");
       const conversationIdEl = document.getElementById("conversation-id");
+      const tracePanelEl = document.getElementById("trace-panel");
       const routerPanelEl = document.getElementById("router-panel");
       const escalationPanelEl = document.getElementById("escalation-panel");
+      const ticketPanelEl = document.getElementById("ticket-panel");
       const clarificationPanelEl = document.getElementById("clarification-panel");
       const sourcesPanelEl = document.getElementById("sources-panel");
       const verificationPanelEl = document.getElementById("verification-panel");
@@ -370,8 +445,10 @@
         localStorage.removeItem("conversation_id");
         conversationIdEl.textContent = "Ikke startet";
         messagesEl.innerHTML = "";
+        tracePanelEl.textContent = "Ingen kørsel endnu.";
         routerPanelEl.textContent = "Ingen besked endnu.";
         escalationPanelEl.textContent = "Ingen eskalering.";
+        ticketPanelEl.textContent = "Intet ticket oprettet.";
         clarificationPanelEl.textContent = "Ingen afklaring.";
         sourcesPanelEl.textContent = "Ingen kilder endnu.";
         verificationPanelEl.textContent = "Ingen verifikation endnu.";
@@ -422,6 +499,7 @@
 
       function renderMetadata(data) {
         routerPanelEl.innerHTML = "";
+        renderTrace(data);
         routerPanelEl.appendChild(renderRows({
           Intent: data.router?.intent,
           Confidence: data.router?.confidence,
@@ -441,6 +519,23 @@
           Reason: escalation.reason,
         }));
         escalationPanelEl.appendChild(escalationBox);
+
+        ticketPanelEl.innerHTML = "";
+        const ticket = data.ticket;
+        if (!ticket) {
+          ticketPanelEl.textContent = "Intet ticket oprettet.";
+        } else {
+          const ticketBox = document.createElement("div");
+          ticketBox.className = "source escalation";
+          ticketBox.appendChild(renderRows({
+            Ticket: ticket.ticket_number,
+            Status: ticket.status,
+            Queue: ticket.queue,
+            Priority: ticket.priority,
+            Created: ticket.created_at,
+          }));
+          ticketPanelEl.appendChild(ticketBox);
+        }
 
         clarificationPanelEl.innerHTML = "";
         const clarification = data.clarification || { required: false };
@@ -482,6 +577,58 @@
           Confidence: data.verification?.confidence,
           Reason: data.verification?.reason,
         }));
+      }
+
+      function renderTrace(data) {
+        tracePanelEl.innerHTML = "";
+        const trace = data.trace || [];
+
+        if (!trace.length) {
+          tracePanelEl.textContent = "Ingen trace-data.";
+          return;
+        }
+
+        const traceEl = document.createElement("div");
+        traceEl.className = "trace";
+
+        trace.forEach((step) => {
+          const stepEl = document.createElement("div");
+          stepEl.className = "trace-step";
+
+          const dotEl = document.createElement("div");
+          dotEl.className = "trace-dot";
+
+          const titleEl = document.createElement("div");
+          titleEl.className = "trace-title";
+          const labelEl = document.createElement("span");
+          labelEl.textContent = step.label;
+          const durationEl = document.createElement("span");
+          durationEl.className = "trace-duration";
+          durationEl.textContent = `${step.duration_ms} ms`;
+          titleEl.append(labelEl, durationEl);
+
+          const detailsEl = document.createElement("div");
+          detailsEl.className = "trace-details";
+          detailsEl.textContent = formatTraceDetails(step.details || {});
+
+          stepEl.append(dotEl, titleEl, detailsEl);
+          traceEl.appendChild(stepEl);
+        });
+
+        const totalEl = document.createElement("div");
+        totalEl.className = "status";
+        totalEl.textContent = `Total: ${data.duration_ms} ms`;
+        tracePanelEl.append(traceEl, totalEl);
+      }
+
+      function formatTraceDetails(details) {
+        return Object.entries(details)
+          .filter(([, value]) => value !== undefined && value !== null && value !== "")
+          .map(([key, value]) => {
+            const formatted = Array.isArray(value) ? value.join(", ") : String(value);
+            return `${key}: ${formatted}`;
+          })
+          .join(" · ");
       }
 
       function renderRows(rows) {
