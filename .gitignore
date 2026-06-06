@@ -32,3 +32,4 @@ qdrant_data/
 .ruff_cache/
 .coverage
 htmlcov/
+backend/evals/reports/

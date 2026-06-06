@@ -1,0 +1,309 @@
+[
+  {
+    "id": "bingo_purchase_time",
+    "category": "Bingo",
+    "messages": ["Hvor tidligt kan jeg købe spilleplader til Bingo?"],
+    "expected": {
+      "intent": "rules_question",
+      "agent": "support_answer_agent",
+      "escalation_required": false,
+      "source_sections": ["Bingo"],
+      "verification_supported": true,
+      "answer_contains_any": ["30 minutter"]
+    }
+  },
+  {
+    "id": "bingo_minimum_players",
+    "category": "Bingo",
+    "messages": ["Hvad sker der, hvis kun én spiller har købt plader til et Bingo-spil?"],
+    "expected": {
+      "intent": "rules_question",
+      "agent": "support_answer_agent",
+      "escalation_required": false,
+      "source_sections": ["Bingo"],
+      "verification_supported": true,
+      "answer_contains_any": ["tilbage", "annull"]
+    }
+  },
+  {
+    "id": "casino_chat_drugs",
+    "category": "Casino",
+    "messages": [
+      "Jeg skrev i Casino-chatten, at jeg ville købe hash, og fik karantæne. Hvorfor?"
+    ],
+    "expected": {
+      "intent": "rules_question",
+      "agent": "support_answer_agent",
+      "escalation_required": false,
+      "source_sections": ["Casino"],
+      "verification_supported": true,
+      "answer_contains_any": ["køb", "salg", "karantæne"]
+    }
+  },
+  {
+    "id": "casino_free_play",
+    "category": "Casino",
+    "messages": ["Kan man spille Casino gratis med fiktive penge?"],
+    "expected": {
+      "intent": "rules_question",
+      "agent": "support_answer_agent",
+      "escalation_required": false,
+      "source_sections": ["Casino"],
+      "verification_supported": true,
+      "answer_contains_any": ["gratis", "fiktive"]
+    }
+  },
+  {
+    "id": "dantoto_age_limit",
+    "category": "Dantoto",
+    "messages": ["Hvor gammel skal man være for at spille Dantoto?"],
+    "expected": {
+      "intent": "rules_question",
+      "agent": "support_answer_agent",
+      "escalation_required": false,
+      "source_sections": ["Dantoto"],
+      "verification_supported": true,
+      "answer_contains_any": ["18"]
+    }
+  },
+  {
+    "id": "dantoto_official_result",
+    "category": "Dantoto",
+    "messages": ["Hvordan afgøres resultatet af et Dantoto-spil?"],
+    "expected": {
+      "intent": "rules_question",
+      "agent": "support_answer_agent",
+      "escalation_required": false,
+      "source_sections": ["Dantoto"],
+      "verification_supported": true
+    }
+  },
+  {
+    "id": "livecasino_chat_rules",
+    "category": "LiveCasino",
+    "messages": ["Kan man få karantæne for at chikanere andre i Live Casino-chatten?"],
+    "expected": {
+      "intent": "rules_question",
+      "agent": "support_answer_agent",
+      "escalation_required": false,
+      "source_sections": ["LiveCasino"],
+      "verification_supported": true,
+      "answer_contains_any": ["karantæne", "chikane"]
+    }
+  },
+  {
+    "id": "livecasino_house",
+    "category": "LiveCasino",
+    "messages": ["Spiller man mod huset eller andre spillere i Live Casino?"],
+    "expected": {
+      "intent": "rules_question",
+      "agent": "support_answer_agent",
+      "escalation_required": false,
+      "source_sections": ["LiveCasino"],
+      "verification_supported": true,
+      "answer_contains_any": ["huset"]
+    }
+  },
+  {
+    "id": "maaljagt_goal_prediction",
+    "category": "Måljagt",
+    "messages": ["Hvad skal man forudsige i Måljagt?"],
+    "expected": {
+      "intent": "rules_question",
+      "agent": "support_answer_agent",
+      "escalation_required": false,
+      "source_sections": ["Måljagt"],
+      "verification_supported": true,
+      "answer_contains_any": ["mål", "resultat"]
+    }
+  },
+  {
+    "id": "maaljagt_registered_combinations",
+    "category": "Måljagt",
+    "messages": ["Hvilke Måljagt-kombinationer deltager i spillet?"],
+    "expected": {
+      "intent": "rules_question",
+      "agent": "support_answer_agent",
+      "escalation_required": false,
+      "source_sections": ["Måljagt"],
+      "verification_supported": true,
+      "answer_contains_any": ["registreret", "it-system"]
+    }
+  },
+  {
+    "id": "oddset_dead_heat",
+    "category": "Oddset",
+    "messages": ["Hvordan afgøres Oddset ved dødt løb?"],
+    "expected": {
+      "intent": "rules_question",
+      "agent": "support_answer_agent",
+      "escalation_required": false,
+      "source_sections": ["Oddset"],
+      "verification_supported": true,
+      "answer_contains_any": ["reducer", "halver"]
+    }
+  },
+  {
+    "id": "oddset_player_substitution",
+    "category": "Oddset",
+    "messages": [
+      "Jeg spillede på, at en FCK-spiller skulle score 3 mål. Han scorede 2 og blev skiftet ud. Hvorfor tabte jeg?"
+    ],
+    "expected": {
+      "intent": "rules_question",
+      "agent": "support_answer_agent",
+      "escalation_required": false,
+      "source_sections": ["Oddset"],
+      "verification_supported": true,
+      "answer_contains_any": ["tredje", "3", "tab"]
+    }
+  },
+  {
+    "id": "poker_free_play",
+    "category": "Poker",
+    "messages": ["Kan man spille Poker gratis?"],
+    "expected": {
+      "intent": "rules_question",
+      "agent": "support_answer_agent",
+      "escalation_required": false,
+      "source_sections": ["Poker"],
+      "verification_supported": true,
+      "answer_contains_any": ["gratis", "fiktive"]
+    }
+  },
+  {
+    "id": "poker_cash_and_tournament",
+    "category": "Poker",
+    "messages": ["Kan Poker spilles både som turnering og cash game?"],
+    "expected": {
+      "intent": "rules_question",
+      "agent": "support_answer_agent",
+      "escalation_required": false,
+      "source_sections": ["Poker"],
+      "verification_supported": true,
+      "answer_contains_any": ["turnering", "cash game"]
+    }
+  },
+  {
+    "id": "tips_match_count",
+    "category": "Tips",
+    "messages": ["Hvor mange kampe kan et Tips-spil indeholde?"],
+    "expected": {
+      "intent": "rules_question",
+      "agent": "support_answer_agent",
+      "escalation_required": false,
+      "source_sections": ["Tips"],
+      "verification_supported": true,
+      "answer_contains_any": ["2", "25"]
+    }
+  },
+  {
+    "id": "tips_registered_rows",
+    "category": "Tips",
+    "messages": ["Hvilke Tips-rækker deltager i spillet?"],
+    "expected": {
+      "intent": "rules_question",
+      "agent": "support_answer_agent",
+      "escalation_required": false,
+      "source_sections": ["Tips"],
+      "verification_supported": true,
+      "answer_contains_any": ["registreret", "it-system"]
+    }
+  },
+  {
+    "id": "greeting",
+    "category": "Conversation",
+    "messages": ["Hej"],
+    "expected": {
+      "intent": "greeting",
+      "agent": "clarification_agent",
+      "escalation_required": false,
+      "clarification_required": true,
+      "answer_contains_any": ["hjælpe"]
+    }
+  },
+  {
+    "id": "vague_problem",
+    "category": "Conversation",
+    "messages": ["Det virker ikke"],
+    "expected": {
+      "intent": "needs_clarification",
+      "agent": "clarification_agent",
+      "escalation_required": false,
+      "clarification_required": true,
+      "answer_contains_any": ["fortælle", "beskrive", "hvad"]
+    }
+  },
+  {
+    "id": "payment_escalation",
+    "category": "Escalation",
+    "messages": ["Hvorfor mangler min udbetaling?"],
+    "expected": {
+      "intent": "payment_issue",
+      "agent": "escalation_agent",
+      "escalation_required": true,
+      "escalation_queue": "payments"
+    }
+  },
+  {
+    "id": "responsible_gambling_escalation",
+    "category": "Escalation",
+    "messages": ["Jeg spiller for meget og vil gerne stoppe"],
+    "expected": {
+      "intent": "responsible_gambling",
+      "agent": "escalation_agent",
+      "escalation_required": true,
+      "escalation_queue": "responsible_gambling",
+      "escalation_priority": "urgent"
+    }
+  },
+  {
+    "id": "account_escalation",
+    "category": "Escalation",
+    "messages": ["Jeg kan ikke logge ind på min konto"],
+    "expected": {
+      "intent": "account_issue",
+      "agent": "escalation_agent",
+      "escalation_required": true,
+      "escalation_queue": "account_support"
+    }
+  },
+  {
+    "id": "complaint_escalation",
+    "category": "Escalation",
+    "messages": ["Jeg vil gerne indgive en formel klage over jeres kundeservice"],
+    "expected": {
+      "intent": "complaint",
+      "agent": "escalation_agent",
+      "escalation_required": true,
+      "escalation_queue": "complaints"
+    }
+  },
+  {
+    "id": "multi_turn_bingo",
+    "category": "Memory",
+    "messages": [
+      "Hvor tidligt kan jeg købe spilleplader til Bingo?",
+      "Hvad hvis jeg allerede har fået gratis spilleplader?"
+    ],
+    "expected": {
+      "intent": "rules_question",
+      "agent": "support_answer_agent",
+      "escalation_required": false,
+      "source_sections": ["Bingo"],
+      "verification_supported": true
+    }
+  },
+  {
+    "id": "technical_followup",
+    "category": "Conversation",
+    "messages": ["Appen virker ikke"],
+    "expected": {
+      "intent": "technical_issue",
+      "agent": "clarification_agent",
+      "escalation_required": false,
+      "clarification_required": true,
+      "answer_contains_any": ["fejlbesked", "appen", "hjemmesiden"]
+    }
+  }
+]

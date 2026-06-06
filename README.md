@@ -61,3 +61,33 @@ open frontend/index.html
 ```
 
 The frontend calls the backend at `http://localhost:8000`.
+
+## Evaluation Suite
+
+The evaluation suite contains representative cases for all indexed products,
+routing, clarification, escalation, verification, and conversation memory.
+
+Run the backend first, then execute all evaluation cases:
+
+```bash
+cd backend
+../backend/.venv/bin/python -m evals.run_evals
+```
+
+Run selected cases while developing:
+
+```bash
+cd backend
+../backend/.venv/bin/python -m evals.run_evals \
+  --case bingo_purchase_time \
+  --case payment_escalation
+```
+
+Reports are written as JSON and Markdown under `backend/evals/reports/`.
+
+Run the evaluation scoring unit tests without calling OpenAI:
+
+```bash
+cd backend
+../backend/.venv/bin/python -m unittest discover -s tests
+```
