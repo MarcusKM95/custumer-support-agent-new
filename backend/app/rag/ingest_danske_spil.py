@@ -1,4 +1,5 @@
 import re
+from datetime import UTC, datetime
 from uuid import uuid4
 
 from qdrant_client.models import Distance, PointStruct, VectorParams
@@ -74,12 +75,10 @@ def ingest_danske_spil_rules(recreate: bool = True) -> int:
     """
     Fetch Danske Spil rules, chunk them by product, embed them, and store them in Qdrant.
     """
-    if recreate:
-        recreate_collection()
-
     page_text = fetch_html_text(DANSKE_SPIL_RULES_URL)
     sections = extract_rule_sections(page_text)
     points: list[PointStruct] = []
+    indexed_at = datetime.now(UTC).isoformat()
 
     for section_name, rules_text in sections:
         source_url = f"{DANSKE_SPIL_RULES_URL}#{section_name.lower()}"
@@ -99,9 +98,13 @@ def ingest_danske_spil_rules(recreate: bool = True) -> int:
                         "rule_number": chunk["rule_number"],
                         "keywords": chunk["keywords"],
                         "chunk_index": chunk_index,
+                        "indexed_at": indexed_at,
                     },
                 )
             )
+
+    if recreate:
+        recreate_collection()
 
     client = get_qdrant_client()
     client.upsert(collection_name=COLLECTION_NAME, points=points)

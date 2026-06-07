@@ -1,6 +1,6 @@
 from time import perf_counter
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -18,6 +18,11 @@ from app.memory.conversation_memory import (
     format_history,
     get_recent_messages,
 )
+from app.rag.knowledge_base_admin import (
+    ReindexInProgressError,
+    reindex_knowledge_base,
+)
+from app.rag.knowledge_base_status import get_knowledge_base_status
 from app.rag.retriever import search_guidelines
 from app.tickets.ticket_repository import create_ticket
 
@@ -56,6 +61,27 @@ def root():
 @app.get("/health/qdrant")
 def qdrant_health():
     return check_qdrant_connection()
+
+
+@app.get("/knowledge-base/status")
+def knowledge_base_status():
+    try:
+        return get_knowledge_base_status()
+    except Exception as error:
+        return {
+            "status": "error",
+            "error": str(error),
+        }
+
+
+@app.post("/knowledge-base/reindex")
+def knowledge_base_reindex():
+    try:
+        return reindex_knowledge_base()
+    except ReindexInProgressError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+    except Exception as error:
+        raise HTTPException(status_code=500, detail=str(error)) from error
 
 
 @app.post("/chat")

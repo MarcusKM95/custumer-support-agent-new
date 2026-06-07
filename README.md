@@ -57,10 +57,12 @@ uvicorn app.main:app --reload
 Open the frontend:
 
 ```bash
-open frontend/index.html
+cd frontend
+python3 -m http.server 3000
 ```
 
-The frontend calls the backend at `http://localhost:8000`.
+Then open `http://localhost:3000`. The frontend calls the backend at
+`http://localhost:8000`.
 
 The right-hand Agent Trace panel shows the executed backend path, including
 conversation memory, routing, retrieval, reranking, answer generation,
@@ -68,6 +70,13 @@ verification, escalation or clarification, and per-step timing.
 
 Escalated requests create persistent Postgres support tickets with a readable
 ticket number, queue, priority, status, reason, and conversation reference.
+
+The frontend Knowledge Base view reads `/knowledge-base/status` and displays
+the Qdrant collection, total chunks, chunks per product, embedding model,
+dimensions, source URLs, and latest indexed timestamp when available. Its
+re-index action calls `POST /knowledge-base/reindex`, downloads the rules,
+creates fresh embeddings, and replaces the Qdrant collection after the new
+chunks are ready.
 
 ## Evaluation Suite
 

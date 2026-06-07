@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="da">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -7,17 +7,22 @@
     <style>
       :root {
         color-scheme: light;
-        --bg: #f5f7fb;
+        --bg: #f3f5f8;
         --panel: #ffffff;
-        --border: #d8dee9;
-        --text: #17202e;
-        --muted: #657286;
-        --accent: #1167b1;
-        --accent-dark: #0c4f8c;
-        --user: #e5f0ff;
-        --assistant: #ffffff;
-        --warning: #fff4d6;
-        --warning-border: #e5b548;
+        --panel-subtle: #f8fafc;
+        --border: #d9dfe8;
+        --border-strong: #c4ccd8;
+        --text: #172033;
+        --muted: #667085;
+        --accent: #1261a0;
+        --accent-dark: #0b4c80;
+        --accent-soft: #eaf3fb;
+        --success: #18794e;
+        --success-soft: #e8f5ee;
+        --warning: #9a6700;
+        --warning-soft: #fff5d6;
+        --danger: #b42318;
+        --danger-soft: #ffebe9;
       }
 
       * {
@@ -34,11 +39,91 @@
           "Segoe UI", sans-serif;
       }
 
+      button,
+      textarea {
+        letter-spacing: 0;
+      }
+
+      button:focus-visible,
+      textarea:focus-visible,
+      a:focus-visible,
+      summary:focus-visible {
+        outline: 3px solid rgb(18 97 160 / 22%);
+        outline-offset: 2px;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        min-height: 60px;
+        padding: 9px 24px;
+        border-bottom: 1px solid var(--border);
+        background: var(--panel);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 15px;
+        font-weight: 750;
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 32px;
+        height: 32px;
+        place-items: center;
+        border-radius: 7px;
+        background: var(--text);
+        color: white;
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .view-tabs {
+        display: flex;
+        gap: 4px;
+        padding: 3px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #edf2f7;
+      }
+
+      .view-tab {
+        padding: 7px 12px;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .view-tab:hover {
+        background: #e1e8f0;
+        color: var(--text);
+      }
+
+      .view-tab.active {
+        background: var(--panel);
+        color: var(--text);
+        box-shadow: 0 1px 2px rgb(23 32 46 / 12%);
+      }
+
+      .view {
+        display: none;
+      }
+
+      .view.active {
+        display: block;
+      }
+
       .app {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 340px;
+        grid-template-columns: minmax(0, 1fr) 390px;
         gap: 1px;
-        min-height: 100vh;
+        height: calc(100vh - 60px);
         background: var(--border);
       }
 
@@ -51,10 +136,15 @@
         display: grid;
         grid-template-rows: auto 1fr auto;
         min-width: 0;
+        min-height: 0;
       }
 
-      header {
-        padding: 20px 24px;
+      .chat-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 16px 24px;
         border-bottom: 1px solid var(--border);
       }
 
@@ -72,36 +162,68 @@
       }
 
       .messages {
+        min-height: 0;
         overflow-y: auto;
-        padding: 24px;
+        padding: 28px clamp(20px, 5vw, 64px);
+        background: var(--panel-subtle);
+      }
+
+      .empty-state {
+        display: grid;
+        min-height: 100%;
+        place-items: center;
+        color: var(--muted);
+        font-size: 14px;
+        text-align: center;
       }
 
       .message {
-        max-width: 780px;
-        margin: 0 0 16px;
-        padding: 14px 16px;
+        width: fit-content;
+        max-width: min(760px, 88%);
+        margin: 0 0 20px;
+        white-space: pre-wrap;
+        line-height: 1.55;
+      }
+
+      .message-label {
+        margin: 0 0 6px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .message-body {
+        padding: 13px 15px;
         border: 1px solid var(--border);
         border-radius: 8px;
-        white-space: pre-wrap;
-        line-height: 1.45;
+        background: var(--panel);
       }
 
       .message.user {
         margin-left: auto;
-        background: var(--user);
       }
 
-      .message.assistant {
-        background: var(--assistant);
+      .message.user .message-label {
+        text-align: right;
       }
 
-      .message.error {
-        background: #ffe9e9;
-        border-color: #e89a9a;
+      .message.user .message-body {
+        border-color: #bdd5ea;
+        background: var(--accent-soft);
+      }
+
+      .message.assistant .message-body {
+        box-shadow: 0 1px 2px rgb(23 32 51 / 5%);
+      }
+
+      .message.error .message-body {
+        border-color: #efb3ad;
+        background: var(--danger-soft);
+        color: var(--danger);
       }
 
       .composer {
-        padding: 16px 24px 24px;
+        padding: 14px 24px 18px;
         border-top: 1px solid var(--border);
         background: #fbfcff;
       }
@@ -115,12 +237,12 @@
 
       textarea {
         width: 100%;
-        min-height: 76px;
+        min-height: 64px;
         max-height: 180px;
         resize: vertical;
         border: 1px solid var(--border);
         border-radius: 8px;
-        padding: 12px;
+        padding: 12px 14px;
         font: inherit;
         line-height: 1.4;
       }
@@ -132,7 +254,7 @@
         color: white;
         cursor: pointer;
         font: inherit;
-        font-weight: 650;
+        font-weight: 700;
         padding: 12px 16px;
       }
 
@@ -152,7 +274,7 @@
         margin-top: 10px;
       }
 
-      .quick-actions button,
+      .composer .quick-actions button,
       .secondary {
         background: #edf2f7;
         color: var(--text);
@@ -162,20 +284,44 @@
         font-weight: 600;
       }
 
-      .quick-actions button:hover,
+      .composer .quick-actions button:hover,
       .secondary:hover {
         background: #e1e8f0;
       }
 
       aside {
-        padding: 20px;
+        padding: 0;
         overflow-y: auto;
+        background: var(--panel-subtle);
+      }
+
+      .inspector-header {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        padding: 18px 20px;
+        border-bottom: 1px solid var(--border);
+        background: rgb(248 250 252 / 96%);
+        backdrop-filter: blur(8px);
+      }
+
+      .inspector-header h2 {
+        margin: 0;
+        font-size: 15px;
+      }
+
+      .inspector-header .subtitle {
+        margin-top: 4px;
+        font-size: 12px;
+      }
+
+      .inspector-content {
+        padding: 4px 20px 24px;
       }
 
       .panel {
         border-bottom: 1px solid var(--border);
-        padding-bottom: 18px;
-        margin-bottom: 18px;
+        padding: 16px 0;
       }
 
       .panel:last-child {
@@ -184,7 +330,7 @@
 
       .panel h2 {
         margin: 0 0 10px;
-        font-size: 14px;
+        font-size: 12px;
         text-transform: uppercase;
         color: var(--muted);
         letter-spacing: 0;
@@ -194,7 +340,7 @@
         display: grid;
         grid-template-columns: 104px minmax(0, 1fr);
         gap: 8px;
-        font-size: 14px;
+        font-size: 13px;
         margin: 8px 0;
       }
 
@@ -206,22 +352,167 @@
         overflow-wrap: anywhere;
       }
 
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        width: fit-content;
+        min-height: 24px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: #edf1f5;
+        color: #475467;
+        font-size: 12px;
+        font-weight: 750;
+      }
+
+      .badge.success {
+        background: var(--success-soft);
+        color: var(--success);
+      }
+
+      .badge.warning {
+        background: var(--warning-soft);
+        color: var(--warning);
+      }
+
+      .badge.danger {
+        background: var(--danger-soft);
+        color: var(--danger);
+      }
+
       .source {
         border: 1px solid var(--border);
         border-radius: 8px;
-        padding: 10px;
+        padding: 11px;
         margin-top: 8px;
         font-size: 13px;
       }
 
       .source a {
         color: var(--accent);
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      .source a:hover,
+      .kb-table a:hover {
+        text-decoration: underline;
+      }
+
+      .kb-summary {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .kb-stat {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+        background: var(--panel);
+      }
+
+      .kb-stat strong {
+        display: block;
+        margin-top: 8px;
+        font-size: 19px;
         overflow-wrap: anywhere;
       }
 
+      .kb-page {
+        min-height: calc(100vh - 60px);
+        padding: 32px 24px 48px;
+        background: var(--bg);
+      }
+
+      .kb-content {
+        width: min(1100px, 100%);
+        margin: 0 auto;
+      }
+
+      .kb-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 24px;
+      }
+
+      .kb-header h1 {
+        font-size: 24px;
+      }
+
+      .kb-header .quick-actions {
+        flex-wrap: nowrap;
+        margin-top: 0;
+      }
+
+      .kb-details {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        margin-top: 16px;
+      }
+
+      .kb-section {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 20px;
+        background: var(--panel);
+      }
+
+      .kb-section h2 {
+        margin: 0 0 14px;
+        font-size: 16px;
+      }
+
+      .kb-table-wrap {
+        margin-top: 16px;
+        overflow-x: auto;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--panel);
+      }
+
+      .kb-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+
+      .kb-table th,
+      .kb-table td {
+        padding: 13px 16px;
+        border-bottom: 1px solid var(--border);
+        text-align: left;
+      }
+
+      .kb-table th {
+        color: var(--muted);
+        background: #f8fafc;
+        font-size: 12px;
+        text-transform: uppercase;
+      }
+
+      .kb-table tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .kb-table th:nth-child(2),
+      .kb-table td:nth-child(2) {
+        width: 120px;
+        text-align: right;
+      }
+
+      .kb-table a {
+        color: var(--accent);
+        font-weight: 700;
+        text-decoration: none;
+      }
+
       .escalation {
-        background: var(--warning);
-        border-color: var(--warning-border);
+        border-color: #e5c36b;
+        background: var(--warning-soft);
       }
 
       .status {
@@ -231,6 +522,14 @@
         min-height: 18px;
       }
 
+      .status.success {
+        color: var(--success);
+      }
+
+      .status.error {
+        color: var(--danger);
+      }
+
       .trace {
         display: grid;
         gap: 0;
@@ -238,7 +537,7 @@
 
       .trace-step {
         position: relative;
-        padding: 0 0 18px 28px;
+        padding: 0 0 16px 26px;
       }
 
       .trace-step:last-child {
@@ -275,7 +574,7 @@
         display: flex;
         justify-content: space-between;
         gap: 8px;
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 700;
       }
 
@@ -297,109 +596,276 @@
       @media (max-width: 900px) {
         .app {
           grid-template-columns: 1fr;
+          height: auto;
+          min-height: calc(100vh - 60px);
+        }
+
+        .kb-summary,
+        .kb-details {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
         aside {
           border-top: 1px solid var(--border);
+          overflow-y: visible;
+        }
+      }
+
+      @media (max-width: 560px) {
+        .topbar {
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 10px;
+          padding: 12px 16px;
+        }
+
+        .view-tabs {
+          width: 100%;
+        }
+
+        .view-tab {
+          flex: 1;
+        }
+
+        .app,
+        .kb-page {
+          min-height: calc(100vh - 111px);
+        }
+
+        .chat-header {
+          align-items: flex-start;
+          padding: 15px 16px;
+        }
+
+        .messages {
+          min-height: 360px;
+          padding: 20px 16px;
+        }
+
+        .message {
+          max-width: 94%;
+        }
+
+        .composer {
+          padding: 12px 16px 16px;
+        }
+
+        .input-row {
+          grid-template-columns: 1fr;
+        }
+
+        .input-row button {
+          width: 100%;
+        }
+
+        .kb-page {
+          padding: 24px 16px 36px;
+        }
+
+        .kb-header {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .kb-header .quick-actions {
+          width: 100%;
+        }
+
+        .kb-header .quick-actions button {
+          flex: 1;
+        }
+
+        .kb-summary,
+        .kb-details {
+          grid-template-columns: 1fr;
         }
       }
     </style>
   </head>
   <body>
-    <div class="app">
-      <main>
-        <header>
-          <h1>Customer Support Agents</h1>
-          <div class="subtitle">RAG-backed multi-agent support chat</div>
-        </header>
+    <nav class="topbar" aria-label="Primær navigation">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">CS</span>
+        <span>Customer Support Agents</span>
+      </div>
+      <div class="view-tabs" role="tablist" aria-label="Visning">
+        <button
+          type="button"
+          class="view-tab active"
+          data-view="chat-view"
+          role="tab"
+          aria-selected="true"
+        >
+          Chat
+        </button>
+        <button
+          type="button"
+          class="view-tab"
+          data-view="knowledge-base-view"
+          role="tab"
+          aria-selected="false"
+        >
+          Knowledge Base
+        </button>
+      </div>
+    </nav>
 
-        <section class="messages" id="messages"></section>
-
-        <form class="composer" id="chat-form">
-          <div class="input-row">
-            <textarea
-              id="message-input"
-              placeholder="Skriv et kundespørgsmål..."
-              autocomplete="off"
-            ></textarea>
-            <button id="send-button" type="submit">Send</button>
-          </div>
-          <div class="quick-actions">
-            <button type="button" data-prompt="Hvor tidligt kan jeg købe spilleplader til Bingo?">
-              Bingo
-            </button>
-            <button
-              type="button"
-              data-prompt="Jeg sad og spillede blackjack og skrev i chatten at jeg ville købe noget hash. Det blev jeg banned for?? Kan I ikke ophæve den karantæne!?"
-            >
-              Chatregel
-            </button>
-            <button
-              type="button"
-              data-prompt="Jeg spillede på at Delaney fra FCK skulle score 3 mål i kampen, da han havde scoret to mål i kampen blev han skiftet ud!! Jeg tabte derfor mit odds, det er fandme snyd!!!"
-            >
-              Oddset
-            </button>
-            <button type="button" data-prompt="Hvorfor mangler min udbetaling?">
-              Eskalering
-            </button>
+    <section class="view active" id="chat-view">
+      <div class="app">
+        <main>
+          <header class="chat-header">
+            <div>
+              <h1>Supportchat</h1>
+              <div class="subtitle">Agentnetværk med RAG og verificering</div>
+            </div>
             <button type="button" class="secondary" id="new-conversation">
               Ny samtale
             </button>
+          </header>
+
+          <section class="messages" id="messages" aria-live="polite">
+            <div class="empty-state" id="empty-state">Ingen beskeder endnu</div>
+          </section>
+
+          <form class="composer" id="chat-form">
+            <div class="input-row">
+              <textarea
+                id="message-input"
+                placeholder="Skriv et kundespørgsmål..."
+                autocomplete="off"
+              ></textarea>
+              <button id="send-button" type="submit">Send</button>
+            </div>
+            <div class="quick-actions" aria-label="Testsager">
+              <button type="button" data-prompt="Hvor tidligt kan jeg købe spilleplader til Bingo?">
+                Bingo
+              </button>
+              <button
+                type="button"
+                data-prompt="Jeg sad og spillede blackjack og skrev i chatten at jeg ville købe noget hash. Det blev jeg banned for?? Kan I ikke ophæve den karantæne!?"
+              >
+                Chatregel
+              </button>
+              <button
+                type="button"
+                data-prompt="Jeg spillede på at Delaney fra FCK skulle score 3 mål i kampen, da han havde scoret to mål i kampen blev han skiftet ud!! Jeg tabte derfor mit odds, det er fandme snyd!!!"
+              >
+                Oddset
+              </button>
+              <button type="button" data-prompt="Hvorfor mangler min udbetaling?">
+                Eskalering
+              </button>
+            </div>
+            <div class="status" id="status"></div>
+          </form>
+        </main>
+
+        <aside>
+          <div class="inspector-header">
+            <h2>Agentkørsel</h2>
+            <div class="subtitle">Beslutninger og dokumentation</div>
           </div>
-          <div class="status" id="status"></div>
-        </form>
-      </main>
+          <div class="inspector-content">
+            <section class="panel">
+              <h2>Session</h2>
+              <div class="meta-row">
+                <div class="label">API</div>
+                <div class="value" id="api-url">localhost:8000</div>
+              </div>
+              <div class="meta-row">
+                <div class="label">Samtale</div>
+                <div class="value" id="conversation-id">Ikke startet</div>
+              </div>
+            </section>
 
-      <aside>
-        <section class="panel">
-          <h2>Session</h2>
-          <div class="meta-row">
-            <div class="label">API</div>
-            <div class="value" id="api-url">http://localhost:8000</div>
+            <section class="panel">
+              <h2>Agent Trace</h2>
+              <div id="trace-panel">Ingen kørsel endnu.</div>
+            </section>
+
+            <section class="panel">
+              <h2>Router</h2>
+              <div id="router-panel">Ingen besked endnu.</div>
+            </section>
+
+            <section class="panel">
+              <h2>Verifikation</h2>
+              <div id="verification-panel">Ingen verifikation endnu.</div>
+            </section>
+
+            <section class="panel">
+              <h2>Kilder</h2>
+              <div id="sources-panel">Ingen kilder endnu.</div>
+            </section>
+
+            <section class="panel">
+              <h2>Afklaring</h2>
+              <div id="clarification-panel">Ingen afklaring.</div>
+            </section>
+
+            <section class="panel">
+              <h2>Eskalering</h2>
+              <div id="escalation-panel">Ingen eskalering.</div>
+            </section>
+
+            <section class="panel">
+              <h2>Support Ticket</h2>
+              <div id="ticket-panel">Intet ticket oprettet.</div>
+            </section>
           </div>
-          <div class="meta-row">
-            <div class="label">Samtale</div>
-            <div class="value" id="conversation-id">Ikke startet</div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="view" id="knowledge-base-view">
+      <div class="kb-page">
+        <div class="kb-content">
+          <div class="kb-header">
+            <div>
+              <h1>Knowledge Base</h1>
+              <div class="subtitle">
+                Status for dokumenter, embeddings og produktområder i Qdrant
+              </div>
+            </div>
+            <div class="quick-actions">
+              <button type="button" class="secondary" id="refresh-knowledge-base">
+                Opdater status
+              </button>
+              <button type="button" id="reindex-knowledge-base">
+                Re-indekser
+              </button>
+            </div>
           </div>
-        </section>
 
-        <section class="panel">
-          <h2>Agent Trace</h2>
-          <div id="trace-panel">Ingen kørsel endnu.</div>
-        </section>
+          <div class="status" id="knowledge-base-status">Henter status...</div>
+          <div class="kb-summary" id="knowledge-base-summary"></div>
 
-        <section class="panel">
-          <h2>Router</h2>
-          <div id="router-panel">Ingen besked endnu.</div>
-        </section>
+          <div class="kb-details">
+            <section class="kb-section">
+              <h2>Indeksering</h2>
+              <div id="knowledge-base-index"></div>
+            </section>
+            <section class="kb-section">
+              <h2>Embedding</h2>
+              <div id="knowledge-base-embedding"></div>
+            </section>
+          </div>
 
-        <section class="panel">
-          <h2>Eskalering</h2>
-          <div id="escalation-panel">Ingen eskalering.</div>
-        </section>
-
-        <section class="panel">
-          <h2>Support Ticket</h2>
-          <div id="ticket-panel">Intet ticket oprettet.</div>
-        </section>
-
-        <section class="panel">
-          <h2>Afklaring</h2>
-          <div id="clarification-panel">Ingen afklaring.</div>
-        </section>
-
-        <section class="panel">
-          <h2>Kilder</h2>
-          <div id="sources-panel">Ingen kilder endnu.</div>
-        </section>
-
-        <section class="panel">
-          <h2>Verifikation</h2>
-          <div id="verification-panel">Ingen verifikation endnu.</div>
-        </section>
-      </aside>
-    </div>
+          <div class="kb-table-wrap">
+            <table class="kb-table">
+              <thead>
+                <tr>
+                  <th>Produktområde</th>
+                  <th>Chunks</th>
+                  <th>Kilde</th>
+                </tr>
+              </thead>
+              <tbody id="knowledge-base-products"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <script>
       const API_BASE_URL = "http://localhost:8000";
@@ -408,7 +874,15 @@
       const inputEl = document.getElementById("message-input");
       const sendButtonEl = document.getElementById("send-button");
       const statusEl = document.getElementById("status");
+      const messagesEmptyText = "Ingen beskeder endnu";
       const conversationIdEl = document.getElementById("conversation-id");
+      const knowledgeBaseStatusEl = document.getElementById("knowledge-base-status");
+      const knowledgeBaseSummaryEl = document.getElementById("knowledge-base-summary");
+      const knowledgeBaseIndexEl = document.getElementById("knowledge-base-index");
+      const knowledgeBaseEmbeddingEl = document.getElementById("knowledge-base-embedding");
+      const knowledgeBaseProductsEl = document.getElementById("knowledge-base-products");
+      const refreshKnowledgeBaseEl = document.getElementById("refresh-knowledge-base");
+      const reindexKnowledgeBaseEl = document.getElementById("reindex-knowledge-base");
       const tracePanelEl = document.getElementById("trace-panel");
       const routerPanelEl = document.getElementById("router-panel");
       const escalationPanelEl = document.getElementById("escalation-panel");
@@ -423,6 +897,15 @@
         conversationIdEl.textContent = conversationId;
       }
 
+      document.querySelectorAll("[data-view]").forEach((button) => {
+        button.addEventListener("click", () => switchView(button.dataset.view));
+      });
+
+      const initialView = window.location.hash === "#knowledge-base"
+        ? "knowledge-base-view"
+        : "chat-view";
+      switchView(initialView);
+
       formEl.addEventListener("submit", async (event) => {
         event.preventDefault();
         const message = inputEl.value.trim();
@@ -431,6 +914,13 @@
         addMessage("user", message);
         inputEl.value = "";
         await sendMessage(message);
+      });
+
+      inputEl.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && !event.shiftKey) {
+          event.preventDefault();
+          formEl.requestSubmit();
+        }
       });
 
       document.querySelectorAll("[data-prompt]").forEach((button) => {
@@ -444,7 +934,7 @@
         conversationId = null;
         localStorage.removeItem("conversation_id");
         conversationIdEl.textContent = "Ikke startet";
-        messagesEl.innerHTML = "";
+        showEmptyMessages();
         tracePanelEl.textContent = "Ingen kørsel endnu.";
         routerPanelEl.textContent = "Ingen besked endnu.";
         escalationPanelEl.textContent = "Ingen eskalering.";
@@ -452,12 +942,36 @@
         clarificationPanelEl.textContent = "Ingen afklaring.";
         sourcesPanelEl.textContent = "Ingen kilder endnu.";
         verificationPanelEl.textContent = "Ingen verifikation endnu.";
-        statusEl.textContent = "Ny samtale klar.";
+        setStatus(statusEl, "Ny samtale klar.", "success");
       });
+
+      refreshKnowledgeBaseEl.addEventListener("click", loadKnowledgeBaseStatus);
+      reindexKnowledgeBaseEl.addEventListener("click", reindexKnowledgeBase);
+
+      function switchView(viewId) {
+        document.querySelectorAll(".view").forEach((view) => {
+          view.classList.toggle("active", view.id === viewId);
+        });
+        document.querySelectorAll("[data-view]").forEach((button) => {
+          const isActive = button.dataset.view === viewId;
+          button.classList.toggle("active", isActive);
+          button.setAttribute("aria-selected", String(isActive));
+        });
+
+        const isKnowledgeBase = viewId === "knowledge-base-view";
+        window.history.replaceState(
+          null,
+          "",
+          isKnowledgeBase ? "#knowledge-base" : window.location.pathname,
+        );
+        if (isKnowledgeBase && !knowledgeBaseSummaryEl.children.length) {
+          loadKnowledgeBaseStatus();
+        }
+      }
 
       async function sendMessage(message) {
         setLoading(true);
-        statusEl.textContent = "Sender til agentnetværk...";
+        setStatus(statusEl, "Sender til agentnetværk...");
 
         try {
           const response = await fetch(`${API_BASE_URL}/chat`, {
@@ -480,21 +994,45 @@
 
           addMessage("assistant", data.answer || "Intet svar modtaget.");
           renderMetadata(data);
-          statusEl.textContent = "Klar.";
+          setStatus(statusEl, "Svar færdigt.", "success");
         } catch (error) {
           addMessage("error", error.message);
-          statusEl.textContent = "Fejl. Tjek at backend kører på localhost:8000.";
+          setStatus(
+            statusEl,
+            "Fejl. Tjek at backend kører på localhost:8000.",
+            "error",
+          );
         } finally {
           setLoading(false);
         }
       }
 
       function addMessage(role, text) {
+        document.getElementById("empty-state")?.remove();
         const messageEl = document.createElement("div");
         messageEl.className = `message ${role}`;
-        messageEl.textContent = text;
+        const labelEl = document.createElement("div");
+        labelEl.className = "message-label";
+        labelEl.textContent = {
+          user: "Kunde",
+          assistant: "Supportagent",
+          error: "Fejl",
+        }[role] || role;
+        const bodyEl = document.createElement("div");
+        bodyEl.className = "message-body";
+        bodyEl.textContent = text;
+        messageEl.append(labelEl, bodyEl);
         messagesEl.appendChild(messageEl);
         messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+
+      function showEmptyMessages() {
+        messagesEl.innerHTML = "";
+        const emptyEl = document.createElement("div");
+        emptyEl.className = "empty-state";
+        emptyEl.id = "empty-state";
+        emptyEl.textContent = messagesEmptyText;
+        messagesEl.appendChild(emptyEl);
       }
 
       function renderMetadata(data) {
@@ -564,7 +1102,7 @@
               link.href = source.source_url;
               link.target = "_blank";
               link.rel = "noreferrer";
-              link.textContent = source.source_url;
+              link.textContent = "Åbn regelside";
               sourceEl.appendChild(link);
             }
             sourcesPanelEl.appendChild(sourceEl);
@@ -576,6 +1114,135 @@
           Supported: data.verification?.supported,
           Confidence: data.verification?.confidence,
           Reason: data.verification?.reason,
+        }));
+      }
+
+      async function loadKnowledgeBaseStatus() {
+        refreshKnowledgeBaseEl.disabled = true;
+        setStatus(knowledgeBaseStatusEl, "Henter status...");
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/knowledge-base/status`);
+          const data = await response.json();
+          if (!response.ok || data.status === "error") {
+            throw new Error(data.error || `HTTP ${response.status}`);
+          }
+          renderKnowledgeBase(data);
+        } catch (error) {
+          setStatus(
+            knowledgeBaseStatusEl,
+            `Kunne ikke hente status: ${error.message}`,
+            "error",
+          );
+        } finally {
+          refreshKnowledgeBaseEl.disabled = false;
+        }
+      }
+
+      async function reindexKnowledgeBase() {
+        const confirmed = window.confirm(
+          "Re-indeksering downloader reglerne igen og erstatter de nuværende vectors i Qdrant. Fortsæt?",
+        );
+        if (!confirmed) return;
+
+        refreshKnowledgeBaseEl.disabled = true;
+        reindexKnowledgeBaseEl.disabled = true;
+        setStatus(
+          knowledgeBaseStatusEl,
+          "Re-indekserer knowledge base. Det kan tage nogle minutter...",
+        );
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/knowledge-base/reindex`, {
+            method: "POST",
+          });
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data.detail || `HTTP ${response.status}`);
+          }
+
+          await loadKnowledgeBaseStatus();
+          setStatus(
+            knowledgeBaseStatusEl,
+            `Re-indeksering færdig: ${data.chunks_indexed} chunks på ${data.duration_seconds} sekunder.`,
+            "success",
+          );
+        } catch (error) {
+          setStatus(
+            knowledgeBaseStatusEl,
+            `Re-indeksering fejlede: ${error.message}`,
+            "error",
+          );
+        } finally {
+          refreshKnowledgeBaseEl.disabled = false;
+          reindexKnowledgeBaseEl.disabled = false;
+        }
+      }
+
+      function renderKnowledgeBase(data) {
+        setStatus(
+          knowledgeBaseStatusEl,
+          "Knowledge base er tilgængelig.",
+          "success",
+        );
+        knowledgeBaseSummaryEl.innerHTML = "";
+        knowledgeBaseIndexEl.innerHTML = "";
+        knowledgeBaseEmbeddingEl.innerHTML = "";
+        knowledgeBaseProductsEl.innerHTML = "";
+
+        const stats = [
+          ["Status", data.status],
+          ["Chunks", data.total_chunks],
+          ["Model", data.embedding_model],
+          ["Dimensioner", data.embedding_dimensions],
+        ];
+
+        stats.forEach(([label, value]) => {
+          const statEl = document.createElement("div");
+          statEl.className = "kb-stat";
+          const labelEl = document.createElement("span");
+          labelEl.className = "label";
+          labelEl.textContent = label;
+          const valueEl = document.createElement("strong");
+          if (label === "Status") {
+            valueEl.appendChild(createBadge(value, statusTone(value)));
+          } else {
+            valueEl.textContent = String(value ?? "-");
+          }
+          statEl.append(labelEl, valueEl);
+          knowledgeBaseSummaryEl.appendChild(statEl);
+        });
+
+        (data.products || []).forEach((product) => {
+          const rowEl = document.createElement("tr");
+          const nameEl = document.createElement("td");
+          nameEl.textContent = product.name || "-";
+          const countEl = document.createElement("td");
+          countEl.textContent = String(product.chunks ?? 0);
+          const sourceEl = document.createElement("td");
+          if (product.source_url) {
+            const linkEl = document.createElement("a");
+            linkEl.href = product.source_url;
+            linkEl.target = "_blank";
+            linkEl.rel = "noreferrer";
+            linkEl.textContent = "Åbn regelside";
+            sourceEl.appendChild(linkEl);
+          } else {
+            sourceEl.textContent = "-";
+          }
+          rowEl.append(nameEl, countEl, sourceEl);
+          knowledgeBaseProductsEl.appendChild(rowEl);
+        });
+
+        knowledgeBaseIndexEl.appendChild(renderRows({
+          Collection: data.collection,
+          "Senest indekseret": formatDate(data.last_indexed_at),
+          Produktområder: (data.products || []).length,
+        }));
+        knowledgeBaseEmbeddingEl.appendChild(renderRows({
+          Model: data.embedding_model,
+          Dimensioner: data.embedding_dimensions,
+          Vektorer: data.total_chunks,
         }));
       }
 
@@ -642,7 +1309,23 @@
           labelEl.textContent = label;
           const valueEl = document.createElement("div");
           valueEl.className = "value";
-          valueEl.textContent = String(value);
+          if (typeof value === "boolean") {
+            const positive = label === "Required" ? !value : value;
+            valueEl.appendChild(
+              createBadge(value ? "Ja" : "Nej", positive ? "success" : "warning"),
+            );
+          } else if (
+            label.toLowerCase().includes("confidence") &&
+            typeof value === "number"
+          ) {
+            valueEl.textContent = `${Math.round(value * 100)} %`;
+          } else if (label === "Status") {
+            valueEl.appendChild(createBadge(value, statusTone(value)));
+          } else if (label === "Created") {
+            valueEl.textContent = formatDate(value);
+          } else {
+            valueEl.textContent = String(value);
+          }
           row.append(labelEl, valueEl);
           fragment.appendChild(row);
         });
@@ -652,6 +1335,43 @@
       function setLoading(isLoading) {
         sendButtonEl.disabled = isLoading;
         inputEl.disabled = isLoading;
+        formEl.setAttribute("aria-busy", String(isLoading));
+      }
+
+      function createBadge(value, tone = "") {
+        const badgeEl = document.createElement("span");
+        badgeEl.className = `badge ${tone}`.trim();
+        badgeEl.textContent = String(value ?? "-");
+        return badgeEl;
+      }
+
+      function statusTone(value) {
+        const normalized = String(value || "").toLowerCase();
+        if (["ready", "completed", "resolved", "supported"].includes(normalized)) {
+          return "success";
+        }
+        if (["error", "failed", "missing"].includes(normalized)) {
+          return "danger";
+        }
+        if (["open", "pending", "empty"].includes(normalized)) {
+          return "warning";
+        }
+        return "";
+      }
+
+      function formatDate(value) {
+        if (!value) return "Ikke registreret";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return String(value);
+        return new Intl.DateTimeFormat("da-DK", {
+          dateStyle: "medium",
+          timeStyle: "short",
+        }).format(date);
+      }
+
+      function setStatus(element, text, tone = "") {
+        element.className = `status ${tone}`.trim();
+        element.textContent = text;
       }
     </script>
   </body>
